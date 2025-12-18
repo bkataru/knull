@@ -296,3 +296,95 @@ when not defined(knullNoStdlib):
     ## Allocate a new grayscale image with zeroed data
     ## Call freeGrayImage() when done, or use withImage template
     if width == 0 or height == 0:
+      return GrayImage(width: 0, height: 0, data: nil, owned: false, capacity: 0)
+
+    let size = width * height
+    let data = cast[ptr UncheckedArray[Pixel]](alloc0(size))
+    GrayImage(width: width, height: height, data: data, owned: true, capacity: size)
+
+  proc freeGrayImage*(img: var GrayImage) =
+    ## Free memory for owned GrayImage
+    ## Call this when done with an image created by newGrayImage
+    if img.owned and img.data != nil:
+      dealloc(img.data)
+      img.data = nil
+      img.owned = false
+
+  proc clone*(src: GrayImage): GrayImage =
+    ## Create a deep copy of an image
+    if src.data == nil:
+      return GrayImage(width: 0, height: 0, data: nil, owned: false, capacity: 0)
+
+    let size = src.width * src.height
+    let data = cast[ptr UncheckedArray[Pixel]](alloc(size))
+    copyMem(data, src.data, size)
+    GrayImage(width: src.width, height: src.height, data: data, owned: true, capacity: size)
+
+  proc wrapBuffer*(data: ptr UncheckedArray[Pixel]; width, height: uint32): GrayImage =
+    ## Wrap existing buffer as non-owning GrayImage
+    GrayImage(width: width, height: height, data: data, owned: false, capacity: width * height)
+
+  template withImage*(name: untyped, width, height: uint32, body: untyped) =
+    ## RAII-style image management
+    ## ```nim
+    ## withImage(img, 640, 480):
+    ##   fill(img, 128)
+    ##   # img is automatically freed at end of block
+    ## ```
+    var name = newGrayImage(width, height)
+    try:
+      body
+    finally:
+      freeGrayImage(name)
+
+else:
+  # Embedded mode: no automatic allocation
+  # User must provide buffers
+  proc initGrayImage*(data: ptr UncheckedArray[Pixel]; width, height: uint32): GrayImage =
+    ## Initialize GrayImage with external buffer (embedded mode)
+    GrayImage(width: width, height: height, data: data, owned: false, capacity: width * height)
+
+# ============================================================================
+# Point and Rect operations
+# ============================================================================
+
+func initPoint*(x, y: uint32): Point {.inline.} =
+  Point(x: x, y: y)
+
+func initPoint*(x, y: int): Point {.inline.} =
+  Point(x: uint32(max(0, x)), y: uint32(max(0, y)))
+
+func initRect*(x, y, w, h: uint32): Rect {.inline.} =
+  Rect(x: x, y: y, w: w, h: h)
+
+func initRect*(x, y, w, h: int): Rect {.inline.} =
+  Rect(
+    x: uint32(max(0, x)),
+    y: uint32(max(0, y)),
+    w: uint32(max(0, w)),
+    h: uint32(max(0, h))
+  )
+
+func right*(r: Rect): uint32 {.inline.} =
+  ## Get right edge x coordinate
+  r.x + r.w
+
+func bottom*(r: Rect): uint32 {.inline.} =
+  ## Get bottom edge y coordinate
+  r.y + r.h
+
+func area*(r: Rect): uint32 {.inline.} =
+  ## Get rectangle area
+  r.w * r.h
+
+func center*(r: Rect): Point {.inline.} =
+  ## Get rectangle center poin
+  Point(x: r.x + r.w div 2, y: r.y + r.h div 2)
+
+func contains*(r: Rect, p: Point): bool {.inline.} =
+  ## Check if rectangle contains point
+  p.x >= r.x and p.x < r.right and p.y >= r.y and p.y < r.bottom
+
+func overlaps*(a, b: Rect): bool {.inline.} =
+  ## Check if two rectangles overlap
+  not (a.right <= b.x or b.right <= a.x or a.bottom <= b.y or b.bottom <= a.y)

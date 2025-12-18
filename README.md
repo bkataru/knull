@@ -1,4 +1,4 @@
-# 🏴 knull
+# ☠️ knull
 
 Zero-dependency grayscale image processing library for Nim, designed for embedded systems and microcontrollers. A complete Nim port/rewrite of [grayskull](https://github.com/zserge/grayskull).
 

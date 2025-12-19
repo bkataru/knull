@@ -388,3 +388,49 @@ func contains*(r: Rect, p: Point): bool {.inline.} =
 func overlaps*(a, b: Rect): bool {.inline.} =
   ## Check if two rectangles overlap
   not (a.right <= b.x or b.right <= a.x or a.bottom <= b.y or b.bottom <= a.y)
+
+func intersection*(a, b: Rect): Rect =
+  ## Get intersection of two rectangles
+  let x1 = max(a.x, b.x)
+  let y1 = max(a.y, b.y)
+  let x2 = min(a.right, b.right)
+  let y2 = min(a.bottom, b.bottom)
+
+  if x2 > x1 and y2 > y1:
+    Rect(x: x1, y: y1, w: x2 - x1, h: y2 - y1)
+  else:
+    Rect(x: 0, y: 0, w: 0, h: 0)
+
+func boundingBox*(a, b: Rect): Rect =
+  ## Get bounding box containing both rectangles
+  let x1 = min(a.x, b.x)
+  let y1 = min(a.y, b.y)
+  let x2 = max(a.right, b.right)
+  let y2 = max(a.bottom, b.bottom)
+  Rect(x: x1, y: y1, w: x2 - x1, h: y2 - y1)
+
+# ============================================================================
+# Iterator for image pixels
+# ============================================================================
+
+iterator pixels*(img: ImageView | GrayImage): tuple[x, y: uint32; val: Pixel] =
+  # Iterate over all pixels in image
+  for y in 0'u32 ..< img.height:
+    for x in 0'u32 ..< img.width:
+      yield (x, y, img[x, y])
+
+iterator coords*(img: ImageView | GrayImage): tuple[x, y: uint32] =
+  ## Iterate over all coordinates in image
+  for y in 0'u32 ..< img.height:
+    for x in 0'u32 ..< img.width:
+      yield (x, y)
+
+iterator rectPixels*(img: ImageView | GrayImage; roi: Rect): tuple[x, y: uint32, val: Pixel] =
+  # Iterate over pixels within a rectangle
+  let x2 = min(roi.right, img.width)
+  let y2 = min(roi.bottom, img.height)
+  for y in roi.y ..< y2:
+    for x in roi.x ..< x2:
+      yield (x, y, img[x, y])
+
+{.pop.} # raises: []

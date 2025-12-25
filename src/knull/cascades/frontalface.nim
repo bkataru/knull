@@ -1,4 +1,4 @@
-## nimskull/cascades/frontalface - LBP Cascade for frontal face detection
+## knull/cascades/frontalface - LBP Cascade for frontal face detection
 ##
 ## This cascade is converted from OpenCV's lbpcascade_frontalface.xml
 ## Window size: 24x24 pixels
@@ -7,8 +7,8 @@
 ##
 ## Usage:
 ## ```nim
-## import nimskull
-## import nimskull/cascades/frontalface
+## import knull
+## import knull/cascades/frontalface
 ##
 ## # Compute integral image
 ## var iiData: array[imgSize, uint32]

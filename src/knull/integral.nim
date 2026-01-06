@@ -47,8 +47,8 @@ func `[]`*(ii: IntegralImage; x, y: uint32): uint32 {.inline.} =
   if x < ii.width and y < ii.height:
     ii.data[y * ii.width + x]
   else:
-    0  
-    
+    0
+
 func `[]`*(ii: IntegralImage; x, y: int): uint32 {.inline.} =
   ## Get integral value with signed coordinates
   ## Returns 0 for negative coordinates (useful for boundary handling)
@@ -105,7 +105,7 @@ func regionSum*(ii: IntegralImage; x, y, w, h: uint32): uint32 =
   ##       C ───────────── D
   ##  (x-1,y+h-1)     (x+w-1,y+h-1)
   assert ii.isValid, "Integral image must be valid"
-  assert x + w <= ii.width and y + h <= ii.height, "Region out of bounds"   
+  assert x + w <= ii.width and y + h <= ii.height, "Region out of bounds"
 
   let x2 = int(x + w - 1)
   let y2 = int(y + h - 1)
@@ -161,4 +161,36 @@ proc integralBlur*(dst: var ImageView | var GrayImage;
 
 # ============================================================================
 # Integral Image Based Adaptive Threshold
+# ============================================================================
+
+proc integralAdaptiveThreshold*(dst: var ImageView | var GrayImage;
+                                src: ImageView | GrayImage;
+                                ii: IntegralImage;
+                                radius: uint32;
+                                c: int = 0) =
+  ## Adaptive thresholding using pre-computed integral image
+  ##
+  ## Much faster than naive adaptive threshold for large windows
+  assert dst.isValid and src.isValid, "Images must be valid"
+  assert ii.width == src.width and ii.height == src.height,
+    "Dimensions must match"
+
+  for y in 0'u32 ..< src.height:
+    for x in 0'u32 ..< src.width:
+      # Compute window bounds
+      let x1 = if x >= radius: x - radius else: 0'u32
+      let y1 = if y >= radius: y - radius else: 0'u32
+      let x2 = min(x + radius, src.width - 1)
+      let y2 = min(y + radius, src.height - 1)
+
+      let w = x2 - x1 + 1
+      let h = y2 - y1 + 1
+
+      let localMean = int(regionMean(ii, x1, y1, w, h))
+      let thresh = localMean - c
+
+      dst[x, y] = if int(src[x, y]) > thresh: MaxPixel else: MinPixel
+
+# ============================================================================
+# Squared Integral Image (for variance computation)
 # ============================================================================

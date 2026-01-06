@@ -37,5 +37,128 @@ func initIntegralImage*(data: var openArray[uint32]; width, height: uint32): Int
     width: width,
     height: height,
     data: cast[ptr UncheckedArray[uint32]](addr data[0])
-  )  
+  )
+
+func isValid*(ii: IntegralImage): bool {.inline.} =
+  ii.data != nil and ii.width > 0 and ii.height > 0
+
+func `[]`*(ii: IntegralImage; x, y: uint32): uint32 {.inline.} =
+  ## Get integral value at (x, y)
+  if x < ii.width and y < ii.height:
+    ii.data[y * ii.width + x]
+  else:
+    0  
     
+func `[]`*(ii: IntegralImage; x, y: int): uint32 {.inline.} =
+  ## Get integral value with signed coordinates
+  ## Returns 0 for negative coordinates (useful for boundary handling)
+  if x >= 0 and y >= 0 and uint32(x) < ii.width and uint32(y) < ii.height:
+    ii.data[uint32(y) * ii.width + uint32(x)]
+  else:
+    0
+
+# ============================================================================
+# Integral Image Computation
+# ============================================================================
+
+proc computeIntegral*(src: ImageView | GrayImage;
+                      ii: var IntegralImage) =
+  ## Compute integral image from grayscale source
+  ##
+  ## After computation, ii[x, y] = sum of all src pixels from (0,0) to (x,y)
+  assert src.isValid, "Source image must be valid"
+  assert ii.width == src.width and ii.height == src.height,
+    "Integral image dimensions must match source"
+
+  var rowSum: uint32 = 0
+
+  for y in 0'u32 ..< src.height:
+    rowSum = 0
+    for x in 0'u32 ..< src.width:
+      rowSum += uint32(src[x, y])
+      let above = if y > 0: ii[x, y - 1] else: 0'u32
+      ii.data[y * ii.width + x] = rowSum + above
+
+proc computeIntegral*(src: ImageView | GrayImage;
+                      data: var openArray[uint32]) =
+  ## Compute integral image directly into an array
+  var ii = initIntegralImage(data, src.width, src.height)
+  computeIntegral(src, ii)
+
+# ============================================================================
+# Region Sum Queries
+# ============================================================================
+
+
+func regionSum*(ii: IntegralImage; x, y, w, h: uint32): uint32 =
+  ## Get sum of pixels in rectangular region using integral image
+  ##
+  ## Computes sum in O(1) time using:
+  ## sum = D + A - B - C
+  ## where A, B, C, D are the four corners of the region
+  ##
+  ##   (x-1,y-1)       (x+w-1,y-1)
+  ##       A ───────────── B
+  ##       │               │
+  ##       │   Region      │
+  ##       │               │
+  ##       C ───────────── D
+  ##  (x-1,y+h-1)     (x+w-1,y+h-1)
+  assert ii.isValid, "Integral image must be valid"
+  assert x + w <= ii.width and y + h <= ii.height, "Region out of bounds"   
+
+  let x2 = int(x + w - 1)
+  let y2 = int(y + h - 1)
+
+  # Get corner values (handle boundary cases)
+  let a = ii[int(x) - 1, int(y) - 1]  # Top-left (outside region)
+  let b = ii[x2, int(y) - 1]          # Top-right (outside region)
+  let c = ii[int(x) - 1, y2]          # Bottom-left (outside region)
+  let d = ii[x2, y2]                  # Bottom-right (inside region)
+
+  d + a - b - c
+
+func regionSum*(ii: IntegralImage; roi: Rect): uint32 {.inline.} =
+  ## Get sum of pixels in rectangular ROI
+  regionSum(ii, roi.x, roi.y, roi.w, roi.h)
+
+func regionMean*(ii: IntegralImage; x, y, w, h: uint32): uint32 =
+  ## Get mean of pixels in rectangular region
+  let sum = regionSum(ii, x, y, w, h)
+  let area = w * h
+  if area > 0: sum div area else: 0
+
+func regionMean*(ii: IntegralImage; roi: Rect): uint32 {.inline.} =
+  ## Get mean of pixels in rectangular ROI
+  regionMean(ii, roi.x, roi.y, roi.w, roi.h)
+
+# ============================================================================
+# Integral Image Based Blur (Box Filter)
+# ============================================================================
+
+proc integralBlur*(dst: var ImageView | var GrayImage;
+                   ii: IntegralImage;
+                   radius: uint32) =
+  ## Apply box blur using pre-computed integral image
+  ## Much faster than naive box blur for large radii
+  assert dst.isValid, "Destination must be valid"
+  assert ii.width == dst.width and ii.height == dst.height,
+    "Integral image dimensions must match"
+
+  for y in 0'u32 ..< dst.height:
+    for x in 0'u32 ..< dst.width:
+      # Compute window bounds (clamped to image)
+      let x1 = if x >= radius: x - radius else: 0'u32
+      let y1 = if y >= radius: y - radius else: 0'u32
+      let x2 = min(x + radius, dst.width - 1)
+      let y2 = min(y + radius, dst.height - 1)
+
+      let w = x2 - x1 + 1
+      let h = y2 - y1 + 1
+
+      let mean = regionMean(ii, x1, y1, w, h)
+      dst[x, y] = uint8(min(mean, 255'u32))
+
+# ============================================================================
+# Integral Image Based Adaptive Threshold
+# ============================================================================

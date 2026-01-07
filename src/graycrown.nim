@@ -1,4 +1,4 @@
-## knull - Zero-dependency grayscale image processing for embedded systems
+## graycrown - Zero-dependency grayscale image processing for embedded systems
 ##
 ## A Nim port of the grayskull C library, designed for microcontrollers
 ## and resource-constrained devices.
@@ -13,7 +13,7 @@
 ## - Utilities: PGM file I/O, integral images
 ##
 ## Embedded Mode:
-## Compile with -d:knullNoStdlib for zero-dependency embedded operation.
+## Compile with -d:graycrownNoStdlib for zero-dependency embedded operation.
 ## In this mode:
 ## - No dynamic memory allocation
 ## - No file I/O
@@ -22,7 +22,7 @@
 ##
 ## Example:
 ## ```nim
-## import knull
+## import graycrown
 ##
 ## var img = newGrayImage(640, 480)
 ## # ... fill with data ...
@@ -41,5 +41,5 @@
 ## ```
 
 # Re-export core types and utilities
-import knull/core
+import graycrown/core
 export core

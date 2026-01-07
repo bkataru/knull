@@ -1,4 +1,4 @@
-# ☠️ knull
+# ☠️👑 graycrown
 
 Zero-dependency grayscale image processing library for Nim, designed for embedded systems and microcontrollers. A complete Nim port/rewrite of [grayskull](https://github.com/zserge/grayskull).
 
@@ -24,21 +24,21 @@ Zero-dependency grayscale image processing library for Nim, designed for embedde
 ### Using Nimble
 
 ```bash
-nimble install knull
+nimble install graycrown
 ```
 
 ### From Source
 
 ```bash
-git clone https://github.com/bkataru/knull
-cd knull
+git clone https://github.com/bkataru/graycrown
+cd graycrown
 nimble install
 ```
 
 ## Quick Start
 
 ```nim
-import knull
+import graycrown
 
 # Create a grayscale image
 var img = newGrayImage(640, 480)
@@ -68,10 +68,10 @@ writePgm(edges.toView, "output.pgm")
 
 ## Embedded Mode
 
-For microcontrollers and systems without standard library, compile with `-d:knullNoStdlib`:
+For microcontrollers and systems without standard library, compile with `-d:graycrownNoStdlib`:
 
 ```bash
-nim c -d:knullNoStdlib -d:release --gc:none myapp.nim
+nim c -d:graycrownNoStdlib -d:release --gc:none myapp.nim
 ```
 
 In embedded mode:
@@ -83,8 +83,8 @@ In embedded mode:
 Example:
 
 ```nim
-import knull/core
-import knull/filters
+import graycrown/core
+import graycrown/filters
 
 # Static buffers
 var 
@@ -244,7 +244,7 @@ proc writePgm*(img: ImageView; path: string)
 ### Basic Processing Pipeline
 
 ```nim
-import knull
+import graycrown
 
 # Load image
 var img = readPgm("photo.pgm")
@@ -268,7 +268,7 @@ writePgm(edges.toView, "edges.pgm")
 ### Document Scanning
 
 ```nim
-import knull
+import graycrown
 
 proc scanDocument(input: GrayImage): GrayImage =
   # Preprocess
@@ -298,7 +298,7 @@ proc scanDocument(input: GrayImage): GrayImage =
 ### Motion Detection
 
 ```nim
-import knull
+import graycrown
 
 var previousFrame: GrayImage
 
@@ -378,8 +378,8 @@ To publish this package to the Nimble package repository:
    Add this entry to `packages.json`:
    ```json
    {
-     "name": "knull",
-     "url": "https://github.com/bkataru/knull",
+     "name": "graycrown",
+     "url": "https://github.com/bkataru/graycrown",
      "method": "git",
      "tags": ["image", "processing", "embedded", "grayscale", "vision"],
      "description": "Zero-dependency grayscale image processing for embedded systems",

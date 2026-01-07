@@ -1,4 +1,4 @@
-## knull/cascades/frontalface - LBP Cascade for frontal face detection
+## graycrown/cascades/frontalface - LBP Cascade for frontal face detection
 ##
 ## This cascade is converted from OpenCV's lbpcascade_frontalface.xml
 ## Window size: 24x24 pixels
@@ -7,8 +7,8 @@
 ##
 ## Usage:
 ## ```nim
-## import knull
-## import knull/cascades/frontalface
+## import graycrown
+## import graycrown/cascades/frontalface
 ##
 ## # Compute integral image
 ## var iiData: array[imgSize, uint32]

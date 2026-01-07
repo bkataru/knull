@@ -1,4 +1,4 @@
-## knull/blobs - Connected components analysis
+## graycrown/blobs - Connected components analysis
 ##
 ## This module provides:
 ## - Connected component labeling (blob detection)
@@ -282,7 +282,7 @@ const
   # 8-connectivity direction offsets (clockwise from right)
   DirDx: array[8, int] = [1, 1, 0, -1, -1, -1, 0, 1]
   DirDy: array[8, int] = [0, 1, 1, 1, 0, -1, -1, -1]
-  
+
 proc traceContour*(img: ImageView | GrayImage;
                    visited: var ImageView | var GrayImage;
                    contour: var Contour) =
@@ -407,7 +407,7 @@ proc perspectiveCorrect*(dst: var ImageView | var GrayImage;
                   c10 * (1.0'f32 - dx) * dy +
                   c11 * dx * dy
 
-      dst[x, y] = uint8(clamp(pixel, 0.0'f32, 255.0'f32)) 
+      dst[x, y] = uint8(clamp(pixel, 0.0'f32, 255.0'f32))
 
 # ============================================================================
 # Utility Functions
@@ -446,4 +446,3 @@ proc filterBlobsByArea*(blobs: var openArray[Blob];
   writeIdx
 
 {.pop.} # raises: []
-  

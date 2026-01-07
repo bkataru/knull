@@ -1,4 +1,4 @@
-## knull/integral - Integral images (summed area tables)
+## graycrown/integral - Integral images (summed area tables)
 ##
 ## This module provides:
 ## - Integral image computation

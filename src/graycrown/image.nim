@@ -1,4 +1,4 @@
-## knull/image - Basic image operations
+## graycrown/image - Basic image operations
 ##
 ## This module provides fundamental image manipulation operations:
 ## - Copy and crop
@@ -64,7 +64,7 @@ proc crop*(
   ## Crop with explicit coordinates
   dst.crop(src, initRect(x, y, w, h))
 
-when not defined(knullNoStdlib):
+when not defined(graycrownNoStdlib):
   proc cropped*(src: GrayImage, roi: Rect): GrayImage =
     ## Create a new cropped image (allocates memory)
     assert src.isValid, "Source image must be valid"
@@ -134,7 +134,7 @@ proc resize*(dst: var ImageView | var GrayImage, src: ImageView | GrayImage) =
 
       dst[x, y] = uint8(clamp(p, 0.0'f32, 255.0'f32))
 
-when not defined(knullNoStdlib):
+when not defined(graycrownNoStdlib):
   proc resized*(src: GrayImage, newWidth, newHeight: uint32): GrayImage =
     ## Create a new resized image using bilinear interpolation
     result = newGrayImage(newWidth, newHeight)
@@ -168,7 +168,7 @@ proc downsample*(dst: var ImageView | var GrayImage, src: ImageView | GrayImage)
 
       dst[x, y] = uint8(sum div 4)
 
-when not defined(knullNoStdlib):
+when not defined(graycrownNoStdlib):
   proc downsampled*(src: GrayImage): GrayImage =
     ## Create a new 2x downsampled image
     result = newGrayImage(src.width div 2, src.height div 2)
@@ -181,7 +181,7 @@ when not defined(knullNoStdlib):
 type ImagePyramid* = object ## Multi-scale image pyramid
   levels*: seq[GrayImage]
 
-when not defined(knullNoStdlib):
+when not defined(graycrownNoStdlib):
   proc buildPyramid*(src: GrayImage, nLevels: int, minSize: uint32 = 32): ImagePyramid =
     ## Build Gaussian pyramid with specified number of levels
     ## Stops early if image becomes smaller than minSize

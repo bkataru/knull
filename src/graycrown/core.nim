@@ -1,7 +1,7 @@
-## knull/core - Core types and utilities for knull
+## graycrown/core - Core types and utilities for graycrown
 ##
 ## This module provides the fundamental data structures used throughout
-## the knull image processing library. Designed for embedded systems
+## the graycrown image processing library. Designed for embedded systems
 ## with optional stdlib-free operation.
 ##
 ## Key types:
@@ -12,11 +12,11 @@
 
 {.push raises: [].}
 
-when not defined(knullNoStdlib):
+when not defined(graycrownNoStdlib):
   import std/math
 else:
   # Embedded mode: no stdlib dependencies
-  {.hint: "knull running in no-stdlib embedded mode".}
+  {.hint: "graycrown running in no-stdlib embedded mode".}
 
 type
   ## Pixel type - 8-bit grayscale
@@ -117,7 +117,7 @@ const
 # Math functions (embedded-compatible implementations)
 # ============================================================================
 
-when defined(knullNoStdlib):
+when defined(graycrownNoStdlib):
   func absVal*(x: int): int {.inline.} =
     ## Absolute value for integers (embedded mode)
     if x < 0:
@@ -300,7 +300,7 @@ func initImageView*(data: var openArray[Pixel], width, height: uint32): ImageVie
 # GrayImage memory management
 # ============================================================================
 
-when not defined(knullNoStdlib):
+when not defined(graycrownNoStdlib):
   proc newGrayImage*(width, height: uint32): GrayImage =
     ## Allocate a new grayscale image with zeroed data
     ## Call freeGrayImage() when done, or use withImage template

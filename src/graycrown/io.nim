@@ -1,11 +1,11 @@
-## knull/io - Image file I/O
+## graycrown/io - Image file I/O
 ##
 ## This module provides PGM (Portable GrayMap) file reading and writing.
 ## PGM is a simple, portable format ideal for grayscale images.
 ##
 ## Only available when stdlib is enabled (not embedded mode).
 
-when defined(knullNoStdLib):
+when defined(graycrownNoStdLib):
   {.error: "I/O operations require stdlib".}
 
 import std/[streams, strutils]

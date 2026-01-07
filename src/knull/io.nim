@@ -23,9 +23,7 @@ const
 # Error Types
 # ============================================================================
 
-type
-  ImageIOError* = object of CatchableError
-  ## Error during image I/O operation
+type ImageIOError* = object of CatchableError ## Error during image I/O operation
 
 # ============================================================================
 # PGM Reading
@@ -126,7 +124,8 @@ proc readPgm*(path: string): GrayImage =
   if s == nil:
     raise newException(IOError, "Cannot open file: " & path)
 
-  defer: s.close()
+  defer:
+    s.close()
 
   let (width, height, _) = readPgmHeader(s)
 
@@ -135,8 +134,10 @@ proc readPgm*(path: string): GrayImage =
   # Read pixel data
   let bytesRead = s.readData(result.data, width * height)
   if bytesRead != width * height:
-    raise newException(ImageIOError, "Incomplete PGM data: expected " & $(width * height) &
-    " bytes, got " & $bytesRead)
+    raise newException(
+      ImageIOError,
+      "Incomplete PGM data: expected " & $(width * height) & " bytes, got " & $bytesRead,
+    )
 
 proc readPgmInto*(path: string, dst: var ImageView | var GrayImage) =
   ## Read a PGM image into existing buffer
@@ -152,14 +153,17 @@ proc readPgmInto*(path: string, dst: var ImageView | var GrayImage) =
   if s == nil:
     raise newException(IOError, "Cannot open file: " & path)
 
-  defer: s.close()
+  defer:
+    s.close()
 
   let (width, height, _) = readPgmHeader(s)
 
   if uint32(width) != dst.width or uint32(height) != dst.height:
-    raise newException(ImageIOError,
-      "Image dimensions mismatch: file is " & $width & "x" & $height &
-    ", buffer is " & $dst.width & "x" & $dst.height)
+    raise newException(
+      ImageIOError,
+      "Image dimensions mismatch: file is " & $width & "x" & $height & ", buffer is " &
+        $dst.width & "x" & $dst.height,
+    )
 
   let bytesRead = s.readData(dst.data, width * height)
   if bytesRead != width * height:
@@ -169,7 +173,7 @@ proc readPgmInto*(path: string, dst: var ImageView | var GrayImage) =
 # PGM Writing
 # ============================================================================
 
-proc writePgm*(img: ImageView | GrayImage; path: string) =
+proc writePgm*(img: ImageView | GrayImage, path: string) =
   ## Write image to PGM file
   ##
   ## Parameters:
@@ -188,7 +192,8 @@ proc writePgm*(img: ImageView | GrayImage; path: string) =
   if s == nil:
     raise newException(IOError, "Cannot create file: " & path)
 
-  defer: s.close()
+  defer:
+    s.close()
 
   # Write header
   s.writeLine(PgmMagic)
@@ -198,7 +203,7 @@ proc writePgm*(img: ImageView | GrayImage; path: string) =
   # Write pixel data
   s.writeData(img.data, int(img.width * img.height))
 
-proc writePgmAscii*(img: ImageView | GrayImage; path: string) =
+proc writePgmAscii*(img: ImageView | GrayImage, path: string) =
   ## Write image to ASCII PGM file (larger but human-readable)
   if not img.isValid:
     raise newException(IOError, "Cannot write invalid image")
@@ -213,7 +218,8 @@ proc writePgmAscii*(img: ImageView | GrayImage; path: string) =
   if s == nil:
     raise newException(IOError, "Cannot create file: " & path)
 
-  defer: s.close()
+  defer:
+    s.close()
 
   # Write header
   s.writeLine(PgmMagicAscii)
@@ -250,7 +256,8 @@ proc getPgmInfo*(path: string): tuple[width, height: int] =
   if s == nil:
     raise newException(IOError, "Cannot open file: " & path)
 
-  defer: s.close()
+  defer:
+    s.close()
 
   let (width, height, _) = readPgmHeader(s)
   (width, height)

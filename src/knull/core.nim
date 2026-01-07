@@ -120,19 +120,23 @@ const
 when defined(knullNoStdlib):
   func absVal*(x: int): int {.inline.} =
     ## Absolute value for integers (embedded mode)
-    if x < 0: -x else: x
+    if x < 0:
+      -x
+    else:
+      x
 
   func absVal*(x: float32): float32 {.inline.} =
     ## Absolute value for float32 (embedded mode)
-    if x < 0: -x else: x
+    if x < 0:
+      -x
+    else:
+      x
 
   func atan2Approx*(y, x: float32): float32 =
     ## Fast atan2 approximation for embedded systems
     ## Accuracy: ~0.01 radians
     if x == 0.0'f32:
-      return (if y > 0.0'f32: HalfPi
-              elif y < 0.0'f32: -HalfPi
-              else: 0.0'f32)
+      return (if y > 0.0'f32: HalfPi elif y < 0.0'f32: -HalfPi else: 0.0'f32)
 
     let absY = abs(y)
     var r, angle: float32
@@ -144,7 +148,10 @@ when defined(knullNoStdlib):
       r = (x + absY) / (absY - x)
       angle = 3.0'f32 * 0.785398'f32 - 0.785398'f32 * r
 
-    if y < 0.0'f32: -angle else: angle
+    if y < 0.0'f32:
+      -angle
+    else:
+      angle
 
   func sinApprox*(x: float32): float32 =
     ## Fast sine approximation for embedded systems
@@ -152,8 +159,10 @@ when defined(knullNoStdlib):
     var x = x
 
     # Normalize to [-PI, PI]
-    while x > Pi: x -= 2.0'f32 * Pi
-    while x < -Pi: x += 2.0'f32 * Pi
+    while x > Pi:
+      x -= 2.0'f32 * Pi
+    while x < -Pi:
+      x += 2.0'f32 * Pi
 
     var sign: float32 = 1.0'f32
     if x < 0.0'f32:
@@ -175,7 +184,8 @@ when defined(knullNoStdlib):
 
   func sqrtApprox*(x: float32): float32 =
     ## Fast square root approximation using Newton-Raphson
-    if x <= 0.0'f32: return 0.0'f32
+    if x <= 0.0'f32:
+      return 0.0'f32
 
     # Initial guess using bit manipulation
     var i = cast[uint32](x)
@@ -186,7 +196,6 @@ when defined(knullNoStdlib):
     y = 0.5'f32 * (y + x / y)
     y = 0.5'f32 * (y + x / y)
     y
-
 else:
   # Use stdlib math functions
   func atan2Approx*(y, x: float32): float32 {.inline.} =
@@ -213,19 +222,19 @@ func size*(img: ImageView | GrayImage): uint32 {.inline.} =
   ## Get total number of pixels
   img.width * img.height
 
-func contains*(img: ImageView | GrayImage; x, y: uint32): bool {.inline.} =
+func contains*(img: ImageView | GrayImage, x, y: uint32): bool {.inline.} =
   ## Check if coordinates are within image bounds
   x < img.width and y < img.height
 
-func contains*(img: ImageView | GrayImage; x, y: int): bool {.inline.} =
+func contains*(img: ImageView | GrayImage, x, y: int): bool {.inline.} =
   ## Check if signed coordinates are within image bounds
   x >= 0 and y >= 0 and uint32(x) < img.width and uint32(y) < img.height
 
-func idx*(img: ImageView | GrayImage; x, y: uint32): uint32 {.inline.} =
+func idx*(img: ImageView | GrayImage, x, y: uint32): uint32 {.inline.} =
   ## Convert 2D coordinates to linear index
   y * img.width + x
 
-func get*(img: ImageView | GrayImage; x, y: uint32): Pixel {.inline.} =
+func get*(img: ImageView | GrayImage, x, y: uint32): Pixel {.inline.} =
   ## Get pixel value at (x, y) with bounds checking
   ## Returns 0 for out-of-bounds coordinates
   if img.contains(x, y):
@@ -233,36 +242,36 @@ func get*(img: ImageView | GrayImage; x, y: uint32): Pixel {.inline.} =
   else:
     0
 
-func get*(img: ImageView | GrayImage; x, y: int): Pixel {.inline.} =
+func get*(img: ImageView | GrayImage, x, y: int): Pixel {.inline.} =
   ## Get pixel value with signed coordinates
   if img.contains(x, y):
     img.data[img.idx(uint32(x), uint32(y))]
   else:
     0
 
-func `[]`*(img: ImageView | GrayImage; x, y: uint32): Pixel {.inline.} =
+func `[]`*(img: ImageView | GrayImage, x, y: uint32): Pixel {.inline.} =
   ## Subscript operator for pixel access
   img.get(x, y)
 
-func `[]`*(img: ImageView | GrayImage; x, y: int): Pixel {.inline.} =
+func `[]`*(img: ImageView | GrayImage, x, y: int): Pixel {.inline.} =
   ## Subscript operator with signed coordinates
   img.get(x, y)
 
-proc set*(img: var ImageView | var GrayImage; x, y: uint32; value: Pixel) {.inline.} =
+proc set*(img: var ImageView | var GrayImage, x, y: uint32, value: Pixel) {.inline.} =
   ## Set pixel value at (x, y) with bounds checking
   if img.contains(x, y):
     img.data[img.idx(x, y)] = value
 
-proc set*(img: var ImageView | var GrayImage; x, y: int; value: Pixel) {.inline.} =
+proc set*(img: var ImageView | var GrayImage, x, y: int, value: Pixel) {.inline.} =
   ## Set pixel value with signed coordinates
   if img.contains(x, y):
     img.data[img.idx(uint32(x), uint32(y))] = value
 
-proc `[]=`*(img: var ImageView | var GrayImage; x, y: uint32; value: Pixel) {.inline.} =
+proc `[]=`*(img: var ImageView | var GrayImage, x, y: uint32, value: Pixel) {.inline.} =
   ## Subscript assignment operator
   img.set(x, y, value)
 
-proc `[]=`*(img: var ImageView | var GrayImage; x, y: int; value: Pixel) {.inline.} =
+proc `[]=`*(img: var ImageView | var GrayImage, x, y: int, value: Pixel) {.inline.} =
   ## Subscript assignment with signed coordinates
   img.set(x, y, value)
 
@@ -274,17 +283,17 @@ func toView*(img: GrayImage): ImageView {.inline.} =
   ## Create a non-owning view from GrayImage
   ImageView(width: img.width, height: img.height, data: img.data)
 
-func initImageView*(data: ptr UncheckedArray[Pixel]; width, height: uint32): ImageView {.inline.} =
+func initImageView*(
+    data: ptr UncheckedArray[Pixel], width, height: uint32
+): ImageView {.inline.} =
   ## Create ImageView from raw pointer and dimensions
   ImageView(width: width, height: height, data: data)
 
-func initImageView*(data: var openArray[Pixel]; width, height: uint32): ImageView =
+func initImageView*(data: var openArray[Pixel], width, height: uint32): ImageView =
   ## Create ImageView from openArray (stack or heap allocated)
   assert data.len >= int(width * height), "Buffer too small for image dimensions"
   ImageView(
-    width: width,
-    height: height,
-    data: cast[ptr UncheckedArray[Pixel]](addr data[0])
+    width: width, height: height, data: cast[ptr UncheckedArray[Pixel]](addr data[0])
   )
 
 # ============================================================================
@@ -318,11 +327,15 @@ when not defined(knullNoStdlib):
     let size = src.width * src.height
     let data = cast[ptr UncheckedArray[Pixel]](alloc(size))
     copyMem(data, src.data, size)
-    GrayImage(width: src.width, height: src.height, data: data, owned: true, capacity: size)
+    GrayImage(
+      width: src.width, height: src.height, data: data, owned: true, capacity: size
+    )
 
-  proc wrapBuffer*(data: ptr UncheckedArray[Pixel]; width, height: uint32): GrayImage =
+  proc wrapBuffer*(data: ptr UncheckedArray[Pixel], width, height: uint32): GrayImage =
     ## Wrap existing buffer as non-owning GrayImage
-    GrayImage(width: width, height: height, data: data, owned: false, capacity: width * height)
+    GrayImage(
+      width: width, height: height, data: data, owned: false, capacity: width * height
+    )
 
   template withImage*(name: untyped, width, height: uint32, body: untyped) =
     ## RAII-style image management
@@ -340,9 +353,13 @@ when not defined(knullNoStdlib):
 else:
   # Embedded mode: no automatic allocation
   # User must provide buffers
-  proc initGrayImage*(data: ptr UncheckedArray[Pixel]; width, height: uint32): GrayImage =
+  proc initGrayImage*(
+      data: ptr UncheckedArray[Pixel], width, height: uint32
+  ): GrayImage =
     ## Initialize GrayImage with external buffer (embedded mode)
-    GrayImage(width: width, height: height, data: data, owned: false, capacity: width * height)
+    GrayImage(
+      width: width, height: height, data: data, owned: false, capacity: width * height
+    )
 
 # ============================================================================
 # Point and Rect operations
@@ -362,7 +379,7 @@ func initRect*(x, y, w, h: int): Rect {.inline.} =
     x: uint32(max(0, x)),
     y: uint32(max(0, y)),
     w: uint32(max(0, w)),
-    h: uint32(max(0, h))
+    h: uint32(max(0, h)),
   )
 
 func right*(r: Rect): uint32 {.inline.} =
@@ -413,7 +430,7 @@ func boundingBox*(a, b: Rect): Rect =
 # Iterator for image pixels
 # ============================================================================
 
-iterator pixels*(img: ImageView | GrayImage): tuple[x, y: uint32; val: Pixel] =
+iterator pixels*(img: ImageView | GrayImage): tuple[x, y: uint32, val: Pixel] =
   # Iterate over all pixels in image
   for y in 0'u32 ..< img.height:
     for x in 0'u32 ..< img.width:
@@ -425,7 +442,9 @@ iterator coords*(img: ImageView | GrayImage): tuple[x, y: uint32] =
     for x in 0'u32 ..< img.width:
       yield (x, y)
 
-iterator rectPixels*(img: ImageView | GrayImage; roi: Rect): tuple[x, y: uint32, val: Pixel] =
+iterator rectPixels*(
+    img: ImageView | GrayImage, roi: Rect
+): tuple[x, y: uint32, val: Pixel] =
   # Iterate over pixels within a rectangle
   let x2 = min(roi.right, img.width)
   let y2 = min(roi.bottom, img.height)

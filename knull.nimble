@@ -1,10 +1,11 @@
 # Package
 
-version       = "0.1.0"
-author        = "bkataru"
-description   = "A zero-dependency grayscale image processing library for embedded systems - Nim port of grayskull"
-license       = "MIT"
-srcDir        = "src"
+version = "0.1.0"
+author = "bkataru"
+description =
+  "A zero-dependency grayscale image processing library for embedded systems - Nim port of grayskull"
+license = "MIT"
+srcDir = "src"
 
 # Dependencies
 requires "nim >= 2.0.0"

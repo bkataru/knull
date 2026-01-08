@@ -500,3 +500,70 @@ proc extractOrb*(
       nOrb += 1
 
   nOrb
+
+# ============================================================================
+# Feature Matching
+# ============================================================================
+
+func hammingDistance*(desc1, desc2: array[8, uint32]): uint32 =
+  ## Compute Hamming distance between two 256-bit descriptors
+  var dist: uint32 = 0
+  for i in 0 ..< 8:
+    var xorVal = desc1[i] xor desc2[i]
+    while xorVal != 0:
+      dist += xorVal and 1
+      xorVal = xorVal shr 1
+  dist
+
+proc matchOrb*(
+    kps1: openArray[Keypoint],
+    n1: uint32,
+    kps2: openArray[Keypoint],
+    n2: uint32,
+    matches: var openArray[Match],
+    maxMatches: uint32,
+    maxDistance: float32,
+): uint32 =
+  ## Match ORB features using Lowe's ratio test
+  ##
+  ## For each keypoint in kps1, finds best and second-best match in kps2.
+  ## A match is accepted if bestDist < 0.8 * secondBestDist
+  ##
+  ## Parameters:
+  ## - kps1, n1: First keypoint set and count
+  ## - kps2, n2: Second keypoint set and count
+  ## - matches: Output match array
+  ## - maxMatches: Maximum number of matches
+  ## - maxDistance: Maximum Hamming distance for a valid match
+  ##
+  ## Returns: Number of matches found
+  var nMatches: uint32 = 0
+
+  for i in 0'u32 ..< n1:
+    if nMatches >= maxMatches:
+      break
+
+    var bestDist = maxDistance + 1.0'f32
+    var secondBest = maxDistance + 1.0'f32
+    var bestIdx: uint32 = 0
+
+    for j in 0'u32 ..< n2:
+      let d = float32(hammingDistance(kps1[i].descriptor, kps2[j].descriptor))
+
+      if d < bestDist:
+        secondBest = bestDist
+        bestDist = d
+        bestIdx = j
+      elif d < secondBest:
+        secondBest = d
+
+    # Lowe's ratio test
+    if bestDist <= maxDistance and bestDist < 0.8'f32 * secondBest:
+      matches[nMatches] = Match(idx1: i, idx2: bestIdx, distance: uint32(bestDist))
+      nMatches += 1
+
+  nMatches
+
+# ============================================================================
+# Multi-scale ORB Extraction
+# ============================================================================

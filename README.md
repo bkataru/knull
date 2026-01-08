@@ -373,7 +373,7 @@ nimble bench
 
 ### Benchmark Results
 
-Tested on AMD Threadripper, compiled with `nim c -d:release -d:danger`:
+Tested on AMD Ryzen 5 5600U (6 cores / 12 threads), Windows 10 Pro, compiled with `nim c -d:release -d:danger`:
 
 #### Image Operations (640×480)
 

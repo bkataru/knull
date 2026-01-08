@@ -467,3 +467,36 @@ proc extractOrb*(
   ## - scoremapBuffer: Temporary buffer (same size as image)
   ##
   ## Returns: Number of keypoints extracted
+  assert img.isValid, "Image must be valid"
+  assert scoremapBuffer.len >= int(img.size), "Scoremap buffer too small"
+
+  var scoremap = initImageView(scoremapBuffer, img.width, img.height)
+
+  # Detect up to 4x more candidates than needed for selection
+  let maxCandidates = min(maxKeypoints * 4, 5000'u32)
+  var candidates = newSeq[Keypoint](maxCandidates)
+
+  let nFast = fastCorner(img, scoremap, candidates, maxCandidates, threshold)
+
+  if nFast > 1:
+    sortKeypointsByResponse(candidates, nFast)
+
+  # Extract ORB features from top candidates
+  let radius: uint32 = 15
+  var nOrb: uint32 = 0
+
+  for i in 0'u32 ..< nFast:
+    if nOrb >= maxKeypoints:
+      break
+
+    let x = candidates[i].pt.x
+    let y = candidates[i].pt.y
+
+    # Need margin for orientation computation and descriptor
+    if x >= radius and y >= radius and x < img.width - radius and y < img.height - radius:
+      keypoints[nOrb] = candidates[i]
+      keypoints[nOrb].angle = computeOrientation(img, x, y, radius)
+      computeBriefDescriptor(img, keypoints[nOrb])
+      nOrb += 1
+
+  nOrb
